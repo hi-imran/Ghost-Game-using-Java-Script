@@ -1,0 +1,205 @@
+<HTML>
+	<HEAD>
+	<script type="text/javascript">
+
+	var gamePaused  = true;
+	var score_hits  = 0;
+	var lives_remaining = 5;
+	var bgMusic = true;
+
+	class Ghost {
+			constructor(myDivID) {
+				
+				this.myDivID = myDivID;
+				this.reBorn()
+			}
+ 
+			move() {
+
+				this.xPos += this.xSpeed*this.xDirection;
+
+				this.yPos += this.ySpeed*this.yDirection;
+
+				if(this.xPos>window.innerWidth-100) {
+					this.xDirection = -1;
+					this.reSpeed();
+				}
+
+				if(this.xPos<0) {
+					this.xDirection = 1;
+					this.reSpeed();
+				}
+
+				if(this.yPos>window.innerHeight-100) {
+					this.yDirection = -1;
+					this.reSpeed();
+				}
+
+				if(this.yPos<0) {
+					this.yDirection = 1;
+					this.reSpeed();
+				}
+
+				var box = document.getElementById(this.myDivID);
+				box.style.left = this.xPos + "px";
+				box.style.top  = this.yPos + "px";
+
+				if(this.rotate >0) {
+					box.style.transform = "rotate("+this.rotate+"deg)";
+					this.rotate -= 30
+				}
+				else
+					box.style.transform = "rotate(0deg)";
+
+				if(this.isAlive==false && this.yPos>window.innerHeight) {
+					this.reBorn()
+				}
+
+			}
+
+			reBorn() {
+
+				this.isAlive     = true
+				this.rotate      = 0
+
+				this.xPos        = window.innerWidth  * Math.random()
+				this.yPos        = window.innerHeight * Math.random()
+				
+				this.xDirection  = 1
+				this.yDirection  = 1
+				if(Math.random()<0.5)
+					this.xDirection  = -1
+				if(Math.random()<0.5)
+					this.yDirection  = -1
+
+				this.reSpeed()
+			}
+
+			dieOnTouch() {
+				this.isAlive = false;
+		      	this.yDirection = 1;
+		      	this.xSpeed = 0;
+		      	this.ySpeed = 50;
+		      	this.rotate = 1000;
+			}
+
+			reSpeed() {
+				this.xSpeed = 2+ Math.random()*5;
+				this.ySpeed = 2+ Math.random()*5;
+			}
+
+		}
+
+	Ghosts = [new Ghost("Ghost_1"),new Ghost("Ghost_2"),new Ghost("Ghost_3"),new Ghost("Ghost_4"),new Ghost("Ghost_5")];
+	
+	document.addEventListener('click', Tap, true);
+	function Tap(e){
+	      cursorX = e.pageX;
+	      cursorY = e.pageY;
+
+	      if(gamePaused==true)
+	      	return;
+
+	      var anyGhostHit = false;
+	      for(i=0; i<Ghosts.length; i++) {
+			 
+				if( cursorX>Ghosts[i].xPos && cursorX<Ghosts[i].xPos+100 && 
+					cursorY>Ghosts[i].yPos && cursorY<Ghosts[i].yPos+100) {
+
+					Ghosts[i].dieOnTouch();
+
+					var cryAudio = new Audio('pics/cry.mp3');
+			      	if(Math.random()<0.5)
+			      		cryAudio = new Audio('pics/cry2.mp3');
+					cryAudio.play();
+
+					score_hits += 10;
+					anyGhostHit = true;
+				}
+		  }
+
+		  if(anyGhostHit==false) {
+
+		  	var laughAudio = new Audio('pics/laugh.mp3');
+	      	if(Math.random()<0.5)
+	      		laughAudio = new Audio('pics/laugh2.mp3');
+			laughAudio.play();
+
+			lives_remaining--;
+		  }
+	}
+
+	function game()
+	{
+		if(gamePaused!=true) {
+			for(i=0; i<Ghosts.length; i++) {
+				Ghosts[i].move();
+			}
+		}
+
+		var score = document.getElementById('score');
+		score.innerHTML = " &nbsp; Point: "+score_hits + ",  &nbsp;Lives: ";
+
+		for(i=0; i<lives_remaining; i++){
+			score.innerHTML += " <img src = pics/life.png height=20 style = \"margin-bottom: -4px;\"> ";
+		}
+
+		if(lives_remaining>0)
+			setTimeout("game()", 30)
+		else
+			alert('Game Over!');
+	}
+
+	function startGame()
+	{
+		gamePaused = false;
+		document.getElementById('playButton').style.display='none';
+
+		new Audio('pics/bg.mp3').play();
+	}
+
+	function pauseGame()
+	{
+		var pauseButtonPic = document.getElementById('pauseButtonPic');
+		if(gamePaused == false) {
+			gamePaused = true;
+			pauseButtonPic.src = "pics/play.png";
+		}
+		else {
+			gamePaused = false;
+			pauseButtonPic.src = "pics/pause.png";
+		}
+	}
+
+	</script>
+	<style type="text/css">
+		.ghost {
+			border: 0px solid red; width: 100px; height: 100px; 
+			position: absolute; top: 0px; left: 0px;
+		}
+	</style>
+	</HEAD>
+	<BODY ONLOAD = "game()" style = "margin-left: 0px; margin-top: 0px; background: url('./pics/bg.jpg'); ">
+
+		<DIV>
+
+		<DIV ID = "Ghost_1" CLASS = "ghost"><IMG SRC = "pics/ghost2.gif" HEIGHT = 100></DIV>
+		<DIV ID = "Ghost_2" CLASS = "ghost"><IMG SRC = "pics/ghost2.gif" HEIGHT = 100></DIV>
+		<DIV ID = "Ghost_3" CLASS = "ghost"><IMG SRC = "pics/ghost2.gif" HEIGHT = 100></DIV>
+		<DIV ID = "Ghost_4" CLASS = "ghost"><IMG SRC = "pics/ghost2.gif" HEIGHT = 100></DIV>
+		<DIV ID = "Ghost_5" CLASS = "ghost"><IMG SRC = "pics/ghost2.gif" HEIGHT = 100></DIV>
+
+		</DIV>
+
+		<DIV ID = score STYLE = "background: #FF0; padding: 4px; font-weight: strong; position: absolute; top: 0px; left: 0px;"> </DIV>
+
+		<DIV ID = playButton STYLE = "top: 0px; left: 0px; text-align: center; width: 100%;height:100%; display:block; border: 0px solid red;">
+			<img src = "pics/play.png" style=" margin: 0; position: absolute;  top: 50%; left: 50%; transform: translate(-50%, -50%);" ONCLICK = "startGame();">
+		</DIV>
+
+		<DIV>
+			<img ID = pauseButtonPic src = "pics/pause.png" ONCLICK = "pauseGame();" align = right width = 100 style="padding: 10px; margin: 20px;">
+		</DIV>
+
+	</BODY>
+</HTML>
